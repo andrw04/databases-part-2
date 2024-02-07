@@ -8,7 +8,7 @@ CREATE TABLE MyTable (
 );
 
 DECLARE
-    res VARCHAR2(20);
+    res VARCHAR2(255);
 
     FUNCTION compare_even_odd_count RETURN VARCHAR IS
         even_count NUMBER := 0;
@@ -34,24 +34,31 @@ DECLARE
     END compare_even_odd_count;
     
     
-    FUNCTION get_insert_query(table_name VARCHAR2, val NUMBER) RETURN VARCHAR2 IS
+    FUNCTION get_insert_query(table_name VARCHAR2, id NUMBER, val NUMBER) RETURN VARCHAR2 IS
     BEGIN
-        RETURN utl_lms.format_message('INSERT INTO %s VALUES (%d);', table_name, val);
+        RETURN utl_lms.format_message('INSERT INTO %s(id, val) VALUES (%d, %d)', table_name,TO_CHAR(id), TO_CHAR(val));
     END;
     
-    PROCEDURE insert_data(table_name VARCHAR, val NUMBER) IS
+    PROCEDURE select_data IS
     BEGIN
-        EXECUTE IMMEDIATE get_insert_query(table_name, val);
+        FOR line IN (SELECT * FROM MyTable) LOOP
+            DBMS_OUTPUT.PUT_LINE('id: ' || line.id || ', val: ' || line.val);
+        END LOOP;
+    END;
+    
+    PROCEDURE insert_data(table_name VARCHAR, id NUMBER, val NUMBER) IS
+    BEGIN
+        EXECUTE IMMEDIATE get_insert_query(table_name, id, val);
     END;
     
     PROCEDURE update_data(table_name VARCHAR2, id NUMBER, val NUMBER) IS
     BEGIN
-        EXECUTE IMMEDIATE utl_lms.format_message('UPDATE %s SET val=%d WHERE id=%d;', table_name, val, id);
+        EXECUTE IMMEDIATE utl_lms.format_message('UPDATE %s SET val=%d WHERE id=%d', table_name, TO_CHAR(val), TO_CHAR(id));
     END;
     
     PROCEDURE delete_data(table_name VARCHAR2, id NUMBER) IS
     BEGIN
-        EXECUTE IMMEDIATE utl_lms.format_message('DELETE FROM %s WHERE id=%d;', table_name, id);
+        EXECUTE IMMEDIATE utl_lms.format_message('DELETE FROM %s WHERE id=%d', table_name, TO_CHAR(id));
     END;
     
     FUNCTION get_year_income(monthly_income NUMBER, adding_percent NUMBER) 
@@ -82,12 +89,29 @@ BEGIN
         INSERT INTO MyTable values (i, ROUND(DBMS_RANDOM.value(0,10000)));
     END LOOP;
     
+    res := get_year_income(5000,1);
+    DBMS_OUTPUT.PUT_LINE('Year income result: ' || res);
+    
+    DBMS_OUTPUT.PUT_LINE('Original data: ');
+    select_data();
+    
     res := compare_even_odd_count();
-    DBMS_OUTPUT.PUT_LINE('Result: ' || res);
-    res := get_year_income(NULL, 1);
-    DBMS_OUTPUT.PUT_LINE('Result: ' || res);
-END;
+    DBMS_OUTPUT.PUT_LINE('Result of comparing: ' || res);
+    
+    res := get_insert_query('MyTable',11, 100);
+    DBMS_OUTPUT.PUT_LINE('Insert query:' || res);
+    
+    insert_data('MyTable',11, 11);
+    DBMS_OUTPUT.PUT_LINE('Data after insert: ');
+    select_data();
+    
+    update_data('MyTable', 1, 1500);
+    DBMS_OUTPUT.PUT_LINE('Data after update: ');
+    select_data();
 
--- SELECT * FROM MyTable;
+    delete_data('MyTable', 2);
+    DBMS_OUTPUT.PUT_LINE('Data after delete: ');
+    select_data();
+END;
 
       
