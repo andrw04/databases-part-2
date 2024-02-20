@@ -113,6 +113,42 @@ END;
 /
 
 
+-- task 4
+DROP TABLE students_logs;
+
+CREATE TABLE students_logs (
+    id NUMBER PRIMARY KEY,
+    operation VARCHAR(20) NOT NULL,
+    timestamp_written TIMESTAMP NOT NULL,
+    student_id NUMBER,
+    student_name VARCHAR2(100) NOT NULL,
+    student_group_id NUMBER
+);
+
+CREATE OR REPLACE TRIGGER log_students
+AFTER UPDATE OR INSERT OR DELETE ON students
+FOR EACH ROW
+DECLARE
+    number_of_records NUMBER;
+BEGIN
+    EXECUTE IMMEDIATE 'SELECT COUNT(*) FROM students_logs' INTO number_of_records;
+    IF INSERTING THEN
+        INSERT INTO students_logs VALUES (number_of_records + 1, 'INSERT', CURRENT_TIMESTAMP, :NEW.id, :NEW.name, :NEW.group_id);
+    END IF;
+    IF UPDATING THEN
+        INSERT INTO students_logs VALUES (number_of_records + 1, 'UPDATE', CURRENT_TIMESTAMP, :NEW.id, :NEW.name, :NEW.group_id);
+    END IF;
+    IF DELETING THEN
+        INSERT INTO students_logs VALUES (number_of_records + 1, 'DELETE', CURRENT_TIMESTAMP, :OLD.id, :OLD.name, :old.group_id);
+    END IF;
+END;
+/
+
+
+-- task 5
+
+
+
 -- task 6
 CREATE OR REPLACE TRIGGER update_c_val
 AFTER INSERT OR UPDATE OR DELETE ON students
