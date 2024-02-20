@@ -146,7 +146,26 @@ END;
 
 
 -- task 5
-
+CREATE OR REPLACE PROCEDURE roll_back (rollback_time TIMESTAMP)
+AS
+BEGIN
+    DELETE FROM students;
+                        
+    FOR log_record IN (SELECT * FROM students_logs) LOOP
+        IF log_record.timestamp_written <= rollback_time THEN
+            IF log_record.operation = 'INSERT' THEN
+                INSERT INTO students (id, name, group_id) VALUES (log_record.student_id, log_record.student_name, log_record.student_group_id);
+            END IF;
+            If log_record.operation = 'UPDATE' THEN
+                UPDATE students SET name = log_record.student_name, group_id = log_record.student_group_id WHERE id=log_record.student_id;
+            END IF;
+            IF log_record.operation = 'DELETE' THEN
+                DELETE FROM students WHERE id = log_record.student_id;
+            END IF;
+        END IF;
+    END LOOP;
+END;
+/
 
 
 -- task 6
@@ -179,11 +198,11 @@ EXCEPTION
 END;
 /
 
+
 INSERT INTO groups (id, name, c_val) VALUES (1, '153504', 0);
 INSERT INTO students (id, name, group_id) VALUES (1, 'Andrei', 1);
 INSERT INTO students (id, name, group_id) VALUES (2, 'Anton', 1);
 INSERT INTO students (id, name, group_id) VALUES (3, 'Vadim', 1);
-
-
+    
 
 --DELETE FROM groups WHERE groups.id=1;
