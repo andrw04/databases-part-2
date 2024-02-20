@@ -100,4 +100,18 @@ BEGIN
 END;
 /
 
+-- task 3
+CREATE OR REPLACE TRIGGER students_cascade_delete
+AFTER DELETE ON groups
+FOR EACH ROW
+BEGIN
+    DELETE FROM students WHERE students.group_id=:OLD.id;
+END;
+/
 
+INSERT INTO groups (id, name, c_val) VALUES (1, '153504', 0);
+INSERT INTO students (id, name, group_id) VALUES (1, 'Andrei', 1);
+INSERT INTO students (id, name, group_id) VALUES (2, 'Anton', 1);
+INSERT INTO students (id, name, group_id) VALUES (3, 'Vadim', 1);
+
+--DELETE FROM groups WHERE groups.id=1;
