@@ -33,6 +33,8 @@ START WITH 1
 INCREMENT BY 1;
 
 
+DROP TRIGGER update_c_val;
+
 CREATE OR REPLACE TRIGGER check_student_id
 BEFORE UPDATE OR INSERT ON students
 FOR EACH ROW
@@ -48,7 +50,6 @@ BEGIN
     END IF;
 END;
 /
-
 
 CREATE OR REPLACE TRIGGER check_group_name
 BEFORE INSERT ON groups
@@ -105,7 +106,7 @@ END;
 
 -- task 3
 CREATE OR REPLACE TRIGGER students_cascade_delete
-AFTER DELETE ON groups
+BEFORE DELETE ON groups
 FOR EACH ROW
 BEGIN
     DELETE FROM students WHERE students.group_id=:OLD.id;
@@ -168,9 +169,18 @@ END;
 /
 
 
+DROP TRIGGER check_student_id;
+DROP TRIGGER check_group_name;
+DROP TRIGGER check_group_id;
+DROP TRIGGER check_group_id;
+DROP TRIGGER increment_students_id;
+DROP TRIGGER increment_groups_id;
+DROP TRIGGER students_cascade_delete;
+DROP TRIGGER log_students;
+
 -- task 6
 CREATE OR REPLACE TRIGGER update_c_val
-AFTER INSERT OR UPDATE OR DELETE ON students
+AFTER INSERT OR DELETE OR UPDATE ON students
 FOR EACH ROW
 DECLARE
     students_in_group NUMBER;
@@ -200,9 +210,15 @@ END;
 
 
 INSERT INTO groups (id, name, c_val) VALUES (1, '153504', 0);
-INSERT INTO students (id, name, group_id) VALUES (1, 'Andrei', 1);
-INSERT INTO students (id, name, group_id) VALUES (2, 'Anton', 1);
-INSERT INTO students (id, name, group_id) VALUES (3, 'Vadim', 1);
-    
+INSERT INTO groups (id, name, c_val) VALUES (2, '153504', 0);
+INSERT INTO students (id, name, group_id) VALUES (10, 'Andrei', 1);
+INSERT INTO students (id, name, group_id) VALUES (11, 'Anton', 1);
+INSERT INTO students (id, name, group_id) VALUES (12, 'Kirill', 1);
 
---DELETE FROM groups WHERE groups.id=1;
+SELECT * FROM students;
+SELECT * FROM groups;
+    
+SELECT * FROM students_logs;
+
+DELETE FROM groups WHERE groups.id=1;
+call roll_back(TO_TIMESTAMP('02.03.24 11:38:45'));
